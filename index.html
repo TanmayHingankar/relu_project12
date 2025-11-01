@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shoalhaven Development Applications</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 180px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .search-box input {
+            width: 80%;
+            max-width: 500px;
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 1.1em;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border: none;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+            color: #2c3e50;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .download-btn {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+            opacity: 0.9;
+        }
+
+        .progress-pending {
+            background: #f39c12;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .progress-approved {
+            background: #27ae60;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .progress-rejected {
+            background: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .progress-under-review {
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #7f8c8d;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #e74c3c;
+            background: #fadbd8;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, #e67e22, #d35400);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ Shoalhaven Development Applications</h1>
+            <p><strong>Date Range:</strong> 1st September 2025 - 30th September 2025</p>
+            
+            <div class="stats-container">
+                <div class="stat-box">
+                    <span class="stat-number" id="totalApps">0</span>
+                    <span class="stat-label">Total Applications</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number" id="residentialApps">0</span>
+                    <span class="stat-label">Residential</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number" id="commercialApps">0</span>
+                    <span class="stat-label">Commercial</span>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search across all columns...">
+                <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h2>📋 Development Applications List</h2>
+            <button class="download-btn" onclick="downloadCSV()">📥 Download Data as CSV</button>
+            
+            <div id="loading" class="loading">
+                Loading development applications data from database...
+            </div>
+
+            <div id="error" class="error" style="display: none;">
+                Error loading data. Please check console for details.
+            </div>
+
+            <table id="daTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>DA Number</th>
+                        <th>Description</th>
+                        <th>Property Address</th>
+                        <th>Applicant</th>
+                        <th>Progress</th>
+                        <th>Decision</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p><strong>About This App</strong><br>
+            This web application displays Development Application data for <strong>Shoalhaven City Council</strong> for the period <strong>1st September 2025 - 30th September 2025</strong></p>
+            <p>Built with 💬 using HTML/CSS/JS<br>Data Source: Shoalhaven City Council | Powered by Supabase</p>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://ylrntpshofnwwkqivdwl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlscm50cHNob2Zud3drcWl2ZHdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwMDI4ODEsImV4cCI6MjA3NzU3ODg4MX0.3ODxbl51j0Jjy-DLoAINFgbxlnKf6kfFUG5nwDfab6w';
+
+        // Initialize Supabase client
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let allData = [];
+
+        // Function to load data from Supabase
+        async function loadData() {
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error');
+            const tableElement = document.getElementById('daTable');
+            
+            loadingElement.style.display = 'block';
+            errorElement.style.display = 'none';
+            tableElement.style.display = 'none';
+
+            try {
+                // Fetch data from Supabase
+                const { data, error } = await supabase
+                    .from('development_applications')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    throw error;
+                }
+
+                allData = data || [];
+                
+                if (allData.length === 0) {
+                    loadingElement.innerHTML = 'No data found in database.';
+                    return;
+                }
+
+                populateTable(allData);
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                loadingElement.style.display = 'none';
+                errorElement.style.display = 'block';
+                errorElement.innerHTML = `Error loading data: ${error.message}<br>Please check console for details.`;
+            }
+        }
+
+        // Function to populate table with data
+        function populateTable(data) {
+            const tableBody = document.getElementById('tableBody');
+            const loadingElement = document.getElementById('loading');
+            const tableElement = document.getElementById('daTable');
+            const errorElement = document.getElementById('error');
+            
+            // Hide loading and error, show table
+            loadingElement.style.display = 'none';
+            errorElement.style.display = 'none';
+            tableElement.style.display = 'table';
+            
+            // Clear existing rows
+            tableBody.innerHTML = '';
+            
+            // Add new rows
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                
+                // Determine progress class based on status
+                let progressClass = 'progress-pending';
+                const progress = item.progress || item.status || '';
+                const decision = item.decision || '';
+                
+                if (progress.toLowerCase().includes('approved') || decision.toLowerCase().includes('approved')) {
+                    progressClass = 'progress-approved';
+                } else if (progress.toLowerCase().includes('rejected') || decision.toLowerCase().includes('rejected')) {
+                    progressClass = 'progress-rejected';
+                } else if (progress.toLowerCase().includes('review') || progress.toLowerCase().includes('assessment')) {
+                    progressClass = 'progress-under-review';
+                }
+                
+                row.innerHTML = `
+                    <td><strong>${item.da_number || item.daNumber || 'N/A'}</strong></td>
+                    <td>${item.description || 'N/A'}</td>
+                    <td>${item.property_address || item.propertyAddress || 'N/A'}</td>
+                    <td>${item.applicant || 'N/A'}</td>
+                    <td><span class="${progressClass}">${progress || 'Pending'}</span></td>
+                    <td>${decision || 'Pending'}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Update statistics
+            updateStatistics(data);
+        }
+
+        // Function to update statistics
+        function updateStatistics(data) {
+            document.getElementById('totalApps').textContent = data.length;
+            
+            // Count residential and commercial based on description
+            const residential = data.filter(item => {
+                const desc = (item.description || '').toLowerCase();
+                return desc.includes('residential') || 
+                       desc.includes('dwelling') ||
+                       desc.includes('house') ||
+                       desc.includes('pool') ||
+                       desc.includes('garage') ||
+                       desc.includes('fencing') ||
+                       desc.includes('home') ||
+                       desc.includes('residence');
+            }).length;
+            
+            const commercial = data.filter(item => {
+                const desc = (item.description || '').toLowerCase();
+                return desc.includes('commercial') || 
+                       desc.includes('retail') ||
+                       desc.includes('shop') ||
+                       desc.includes('business') ||
+                       desc.includes('signage') ||
+                       desc.includes('development') ||
+                       desc.includes('office') ||
+                       desc.includes('industrial');
+            }).length;
+            
+            document.getElementById('residentialApps').textContent = residential;
+            document.getElementById('commercialApps').textContent = commercial;
+        }
+
+        // Function to handle search
+        function handleSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchTerm) {
+                populateTable(allData);
+                return;
+            }
+            
+            const filteredData = allData.filter(item => 
+                (item.da_number || '').toLowerCase().includes(searchTerm) ||
+                (item.daNumber || '').toLowerCase().includes(searchTerm) ||
+                (item.description || '').toLowerCase().includes(searchTerm) ||
+                (item.property_address || '').toLowerCase().includes(searchTerm) ||
+                (item.propertyAddress || '').toLowerCase().includes(searchTerm) ||
+                (item.applicant || '').toLowerCase().includes(searchTerm) ||
+                (item.progress || '').toLowerCase().includes(searchTerm) ||
+                (item.status || '').toLowerCase().includes(searchTerm) ||
+                (item.decision || '').toLowerCase().includes(searchTerm)
+            );
+            
+            populateTable(filteredData);
+        }
+
+        // Function to download CSV
+        function downloadCSV() {
+            if (allData.length === 0) {
+                alert('No data available to download');
+                return;
+            }
+            
+            // Create CSV content
+            let csvContent = "DA Number,Description,Property Address,Applicant,Progress,Decision\n";
+            
+            allData.forEach(item => {
+                const daNumber = item.da_number || item.daNumber || '';
+                const description = item.description || '';
+                const propertyAddress = item.property_address || item.propertyAddress || '';
+                const applicant = item.applicant || '';
+                const progress = item.progress || item.status || '';
+                const decision = item.decision || '';
+                
+                csvContent += `"${daNumber}","${description}","${propertyAddress}","${applicant}","${progress}","${decision}"\n`;
+            });
+            
+            // Create and trigger download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'shoalhaven_development_applications.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', handleSearch);
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+    </script>
+</body>
+</html>
